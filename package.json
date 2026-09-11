@@ -1,0 +1,18 @@
+{
+  "name": "tornaguias",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "check:structure": "node scripts/check-structure.mjs",
+    "db:check": "node scripts/check-db.mjs"
+  }
+}
+
