@@ -14,7 +14,7 @@ Revisión a solicitud, inventario de archivos, detección de contenido nuevo/mod
 
 Distinguir cargas incrementales de reemplazos de períodos. No sumar versiones ni publicar archivos solapados sin una política definida. La eliminación en origen no elimina datos publicados.
 
-Áreas previstas en PostgreSQL: control, raw, core, quality y analytics. Aún no se crean esquemas ni tablas.
+Areas implementadas en PostgreSQL: control, raw, core, quality y analytics, mas migration_meta para el historial. Tres migraciones aplicadas y primera captura original completada, sin normalizacion ni publicacion. Ver [modelo de datos](data-model.md) y [captura](ingestion.md).
 
 ## Reglas acordadas
 
@@ -33,4 +33,3 @@ Distinguir cargas incrementales de reemplazos de períodos. No sumar versiones n
 ## Seguridad
 
 Sin secretos, datos personales ni Excel en Git. Credenciales exclusivamente del servidor. Desarrollo en base exclusiva. El rol local puede ser propietario de esta base; antes del despliegue separar migraciones, importación y consulta con permisos mínimos.
-

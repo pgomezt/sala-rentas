@@ -11,8 +11,29 @@
     "packages/*"
   ],
   "scripts": {
+    "files:scan": "node scripts/task.mjs files:scan",
+    "files:import": "node scripts/task.mjs files:import",
+    "db:test": "node scripts/task.mjs db:test",
+    "db:status": "node scripts/task.mjs db:status",
+    "db:migrate": "node scripts/task.mjs db:migrate",
+    "dev:web": "node scripts/task.mjs dev:web",
+    "dev:worker": "node scripts/task.mjs dev:worker",
+    "start:web": "node scripts/task.mjs start:web",
+    "start:worker": "node scripts/task.mjs start:worker",
+    "worker:check": "node scripts/task.mjs worker:check",
+    "typecheck": "node scripts/task.mjs typecheck",
+    "test": "node scripts/task.mjs test",
+    "build": "node scripts/task.mjs build",
+    "check": "node scripts/task.mjs check",
+    "setup": "node scripts/setup.mjs",
     "check:structure": "node scripts/check-structure.mjs",
     "db:check": "node scripts/check-db.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
   }
 }
-

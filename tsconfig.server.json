@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": ".",
+    "outDir": "dist",
+    "rewriteRelativeImportExtensions": true,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "scripts/import.ts",
+    "scripts/database.ts",
+    "apps/worker/src/**/*.ts",
+    "packages/*/src/**/*.ts"
+  ]
+}

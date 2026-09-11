@@ -1,0 +1,18 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #152640; background: #f4f7fb; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 850px; margin: 0 auto; padding: 4rem 1.5rem; }
+.eyebrow { color: #245bad; font-size: .875rem; font-weight: 700; letter-spacing: .12em; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 1rem 0; }
+.intro { max-width: 650px; font-size: 1.125rem; line-height: 1.6; }
+section { background: white; padding: 1.75rem; border-top: 4px solid #245bad; margin-top: 2rem; }
+h2 { font-size: 1.25rem; margin-top: 0; }
+dl { margin: 0 0 1.5rem; }
+dl div { display: grid; grid-template-columns: 150px 1fr; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #dce3ec; }
+dt { font-weight: 600; }
+dd { margin: 0; }
+a { color: #174d9b; text-underline-offset: .25em; }
+a:focus-visible { outline: 3px solid #245bad; outline-offset: 5px; }
+.note { font-size: .875rem; line-height: 1.6; color: #4b5c72; }
+@media (max-width: 480px) { dl div { grid-template-columns: 1fr; gap: .4rem; } }
+
