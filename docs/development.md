@@ -2,7 +2,7 @@
 
 ## Estado
 
-El primer commit del scaffold es 42cb412. Hay web de estado, worker inactivo y comandos explicitos de escaneo/captura. Migraciones 0001..0003 aplicadas y primera captura de los Excel completada; ver ingestion.md y data-model.md. Los datos aun no se normalizan ni publican.
+El primer commit del scaffold es 42cb412. Batch 3 cerrado técnicamente para uso local: tablero de revisión, worker operativo, cola persistente y escaneo a solicitud. Migraciones 0001..0005 aplicadas; 374.559 filas capturadas y normalizadas, sin publicaciones. Ver batch-3-closeout.md para evidencia y limitaciones actuales.
 
 Esta sesion puede editar codigo, pero no escribir en .git ni descargar paquetes de npm. La autenticacion GitHub de la terminal del usuario no elimina esas restricciones.
 
@@ -31,7 +31,7 @@ SheetJS ya esta instalado. Los graficos y pruebas de navegador se incorporaran c
 | Accion | Comando |
 | --- | --- |
 | Web local, con recarga | `node scripts/task.mjs dev:web` |
-| Worker inactivo, con recarga | `node scripts/task.mjs dev:worker` |
+| Worker de operaciones, con recarga | `node scripts/task.mjs dev:worker` |
 | Tipos, pruebas y configuracion del worker | `node scripts/task.mjs check` |
 | Solo pruebas unitarias | `node scripts/task.mjs test` |
 | Estado de migraciones | `node scripts/task.mjs db:status` |
@@ -47,7 +47,7 @@ Tambien existen los alias npm run con los mismos nombres. Los comandos directos 
 
 Web: http://127.0.0.1:3000. GET /api/health devuelve 200 cuando la configuracion es valida o 503 con error generico. No consulta PostgreSQL y no afirma que el worker este activo. Es una comprobacion de configuracion, no de disponibilidad de la base.
 
-El worker valida la configuracion y queda inactivo. No se llama a Graphile Worker run(), porque puede aplicar migraciones; habilitar la cola corresponde a una fase posterior. `worker:check` valida y termina sin dejar un proceso activo.
+El worker valida la configuración y atiende la cola PostgreSQL de operaciones solicitadas desde `/loads`. No se llama a Graphile Worker run(); la cola implementada usa tablas y bloqueos asesores propios. `worker:check` valida y termina sin dejar un proceso activo.
 
 ## Configuracion y seguridad
 
@@ -55,7 +55,9 @@ packages/runtime carga .env desde la raiz del monorepo, incluso arrancando en ap
 
 No se modifica .env ni se imprimen sus valores. Los errores de salud y arranque son genericos. Las pruebas usan credenciales ficticias y carpetas temporales propias. NEXT_TELEMETRY_DISABLED se activa en el lanzador local. Sin servicios expuestos fuera de loopback.
 
-## Verificacion de esta fase
+## Verificación histórica del entorno inicial
+
+Esta sección registra el scaffold inicial; las verificaciones vigentes están en [cierre del batch 3](batch-3-closeout.md).
 
 Pasaron la comprobacion de tipos (servidor, web y pruebas), ocho pruebas, compilacion de servidor y Next.js, arranque dev de web/worker, HTTP 200 en la pagina y /api/health. No se hicieron pruebas visuales de navegador. Ninguno de estos comandos importo datos ni aplico migraciones.
 

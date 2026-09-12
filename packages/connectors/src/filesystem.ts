@@ -47,6 +47,7 @@ export async function preserveOriginal(file: SourceFile, directory: string, proj
   const destination = resolve(actualDirectory, file.sha256 + extname(file.name).toLowerCase());
   try { await copyFile(file.path, destination, constants.COPYFILE_EXCL); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
+  if(!within(actualDirectory,await realpath(destination)))throw new Error("ARCHIVE_OUTSIDE_DIRECTORY");
   if (await sha256(destination) !== file.sha256) throw new Error("ARCHIVE_HASH_MISMATCH");
   const after = await stat(file.path);
   if (after.size !== file.size || after.mtimeMs !== file.modifiedMs) throw new Error("SOURCE_CHANGED_DURING_COPY");

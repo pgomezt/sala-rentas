@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+const base="http://127.0.0.1:3000/api/review";
+const send=(body:unknown,origin="http://127.0.0.1:3000")=>fetch(base,{method:"POST",headers:{"Content-Type":"application/json",Origin:origin},body:JSON.stringify(body)});
+assert.equal((await fetch(base+"?q=private")).status,405);
+assert.equal((await send({action:"search"})).status,200);
+assert.equal((await send({action:"search",filters:{page:"-1"}})).status,400);
+assert.equal((await send({action:"search",filters:{from:"2025-02-30"}})).status,400);
+const attack=await send({action:"search",filters:{q:"' OR 1=1 --"}});assert.equal(attack.status,200);assert.equal((await attack.json()).summary.total,0);
+assert.equal((await send({action:"detail",record:"invalid"})).status,400);
+assert.equal((await send({action:"search"},"https://untrusted.example")).status,403);
+assert.equal((await send({action:"propose"})).status,400);
+assert.equal((await send({action:"search",extra:"a".repeat(20000)})).status,413);
+console.log("API: cuerpos limitados, búsquedas sin URL, SQLi, validación y origen OK.");

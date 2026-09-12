@@ -11,6 +11,9 @@
   },
   "include": [
     "scripts/import.ts",
+    "scripts/normalize.ts",
+    "scripts/operation-task.ts",
+    "scripts/quality-report.ts",
     "scripts/database.ts",
     "apps/worker/src/**/*.ts",
     "packages/*/src/**/*.ts"

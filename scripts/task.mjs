@@ -15,9 +15,11 @@ const tasks = {
   "typecheck:tests": [tsc, "-p", "tsconfig.tests.json", "--noEmit"],
   "build:server": [tsc, "-p", "tsconfig.server.json"],
   "build:web": [next, "build", "apps/web", "--webpack"],
-  "test": ["--test", "tests/config.test.ts", "tests/migrations.test.ts", "tests/import.test.ts"],
+  "test": ["--test", "tests/config.test.ts", "tests/migrations.test.ts", "tests/import.test.ts", "tests/normalize.test.ts", "tests/security.test.ts"],
+  "data:normalize": ["scripts/normalize.ts"],
   "files:scan": ["scripts/import.ts", "scan"],
-  "files:import": ["--max-old-space-size=4096", "scripts/import.ts", "capture"],
+  "files:import": ["--max-old-space-size=4096", "--expose-gc", "scripts/import.ts", "capture"],
+  "worker:once": ["apps/worker/src/index.ts", "--once"],
   "db:status": ["scripts/database.ts", "status"],
   "db:migrate": ["scripts/database.ts", "migrate"],
   "db:test": ["tests/database.integration.ts"],
@@ -44,7 +46,7 @@ for (const task of sequence) {
   const status = await new Promise(resolve => {
     child = spawn(process.execPath, tasks[task], {
       cwd: root, stdio: "inherit", windowsHide: true,
-      env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },
+      env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1", TORNAGUIAS_BUILD: ["build:web","start:web"].includes(task) ? "1" : "0" },
     });
     child.once("error", () => { console.error("No se pudo iniciar el comando."); resolve(1); });
     child.once("exit", (code, signal) => resolve(code ?? (signal ? 1 : 0)));

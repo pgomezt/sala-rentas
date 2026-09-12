@@ -4,14 +4,16 @@ Estructura inicial para Cundinamarca. Aplicación web/API y procesamiento indepe
 
 ## Estado
 
-Entorno local ejecutable: pagina de estado Next.js, endpoint de salud, worker inactivo y comandos de escaneo/captura. Tres migraciones aplicadas y 374559 filas originales capturadas de los dos Excel; sin normalizar ni publicar. Pasaron 17 pruebas unitarias, 19 comprobaciones de integracion y la reconciliacion de 24 hojas. Ver [captura controlada](docs/ingestion.md). Git inicializado y primer scaffold subido; los cambios posteriores requieren commit. Sin despliegue. La web no consulta datos todavia; las capturas se ejecutan explicitamente fuera del servidor web.
+Batch 3 cerrado técnicamente para uso local: captura y normalización independientes, API PostgreSQL, tablero de revisión y pantalla `/loads` para solicitar trabajos al worker, con historial y reintentos. Originales y duplicados conservados; sin publicación, autenticación ni despliegue. Ver [cierre y verificaciones](docs/batch-3-closeout.md), [normalización y revisión](docs/normalization-review.md) y [captura controlada](docs/ingestion.md). Los cambios todavía requieren commit/push.
 
 ## Organización
 
+Etapas y requisitos de seguridad: [roadmap](docs/roadmap.md).
+
 Modelo y migraciones: [docs/data-model.md](docs/data-model.md).
 
-- `apps/web`: futura aplicación Next.js/React y API.
-- `apps/worker`: futuro procesador Node.js/TypeScript.
+- `apps/web`: aplicación Next.js/React y API.
+- `apps/worker`: procesador independiente Node.js/TypeScript.
 - `packages/domain`: reglas de normalización y validación, independientes de infraestructura.
 - `packages/contracts`: contratos entre aplicación y worker.
 - `packages/database`: SQL, acceso a datos y migraciones.
@@ -20,7 +22,7 @@ Modelo y migraciones: [docs/data-model.md](docs/data-model.md).
 - `docs`: arquitectura, decisiones, fuentes y configuración.
 - `data`: archivos privados locales, excluidos de Git.
 - `scripts`: comprobaciones de estructura y conexión.
-- `tests`: pruebas futuras de reglas e integración.
+- `tests`: pruebas de reglas, seguridad e integración.
 
 ## Inicio
 

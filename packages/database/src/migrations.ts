@@ -41,8 +41,11 @@ export async function createProjectClient(readOnly = false): Promise<pg.Client> 
     connectionString: loadConfig().databaseUrl,
     connectionTimeoutMillis: 5000,
     application_name: "tornaguias-migrations",
-    options: readOnly ? "-c default_transaction_read_only=on" : "",
+    options: "-c statement_timeout=120000 -c lock_timeout=5000" + (readOnly ? " -c default_transaction_read_only=on" : ""),
   });
+  // Connection loss between queries must not emit an uncaught error with internal details.
+  // Subsequent queries reject and are handled at the operation/request boundary.
+  client.on("error",()=>{});
   try {
     await client.connect();
     const result = await client.query("SELECT current_database() AS name");
@@ -89,4 +92,3 @@ export async function migrate(apply: boolean): Promise<string[]> {
     throw error;
   } finally { await client.end(); }
 }
-

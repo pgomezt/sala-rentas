@@ -13,10 +13,11 @@ export function fileStatus(file: SourceFile, versions: Seen[]) {
   if (versions.some(v => v.external_id === file.name)) return "CHANGED";
   return "NEW";
 }
-export async function processFiles(apply: boolean) {
+export async function processFiles(apply: boolean, onlyName?:string, rollbackForVerification=false) {
   const root = findProjectRoot(), config = loadConfig(root);
   const sourcePath = await realpath(config.sourceDirectory);
-  const files = await listFiles(sourcePath);
+  const files = (await listFiles(sourcePath)).filter(f=>onlyName===undefined||f.name===onlyName);
+  if(onlyName!==undefined&&!files.length)throw new Error("SOURCE_FILE_MISSING");
   const client = await createProjectClient(!apply);
   let locked = false;
   try {
@@ -55,9 +56,10 @@ export async function processFiles(apply: boolean) {
       known.push({external_id:file.name,sha256:file.sha256});
     }
     async function capture(file: SourceFile, archive: string) {
-      const workbook = parseWorkbook(archive);
-      const expected = workbook.sheets.reduce((n,s)=>n+s.rowCount,0);
-      const manifest = workbook.sheets.map(s=>({name:s.name, rows:s.rowCount, columns:s.headers.length}));
+      const workbook=parseWorkbook(archive);
+      const names=workbook.sheets.map(s=>s.name);
+      const kind=workbook.kind,dateSystem=workbook.dateSystem,readerVersion=workbook.readerVersion;
+      let expected=0;const manifest:{name:string;rows:number;columns:number}[]=[];
       await client.query("BEGIN");
       try {
         await client.query("SET LOCAL lock_timeout='5s'");
@@ -81,9 +83,7 @@ export async function processFiles(apply: boolean) {
         await client.query(`INSERT INTO control.load_runs(id,file_version_id,rule_set_id,parser_version,idempotency_key,
           dataset_kind,scope_key,status,attempts,started_at)
           VALUES ($1,$2,$3,'sheetjs-0.20.3/raw-v1',$4,$5,$6,'running',1,now())`,
-          [runId,versionId,ruleId,key,workbook.kind,"raw:"+versionId]);
-        await client.query(`INSERT INTO raw.workbooks(file_version_id,reader_name,reader_version,date_system,sheet_manifest)
-          VALUES ($1,'SheetJS',$2,$3,$4::jsonb)`, [versionId,workbook.readerVersion,workbook.dateSystem,JSON.stringify(manifest)]);
+          [runId,versionId,ruleId,key,kind,"raw:"+versionId]);
         let inserted = 0;
         let batch: unknown[] = [];
         const flush = async () => {
@@ -94,7 +94,10 @@ export async function processFiles(apply: boolean) {
             [versionId,JSON.stringify(batch)]);
           inserted += result.rowCount ?? 0; batch = [];
         };
-        for (const sheet of workbook.sheets) {
+        async function captureSheet(index:number){
+          const sheet=workbook.sheets[index]!;
+          if(sheet.name!==names[index])throw new Error("INCONSISTENT_SHEET");
+          expected+=sheet.rowCount;manifest.push({name:sheet.name,rows:sheet.rowCount,columns:sheet.headers.length});
           for (const row of sheet.rows()) {
             batch.push({sheet_name:sheet.name,row_number:row.rowNumber,headers:sheet.headers,cells:row.cells});
             if (batch.length >= 500) await flush();
@@ -102,13 +105,16 @@ export async function processFiles(apply: boolean) {
           await flush();
           console.log(JSON.stringify({file:file.name,sheet:sheet.name,rows:sheet.rowCount,phase:"CAPTURE_IN_TRANSACTION"}));
         }
+        for(let index=0;index<names.length;index++){await captureSheet(index);global.gc?.();}
         if (inserted !== expected) throw new Error("ROW_COUNT_MISMATCH");
+        await client.query(`INSERT INTO raw.workbooks(file_version_id,reader_name,reader_version,date_system,sheet_manifest)
+          VALUES ($1,'SheetJS',$2,$3,$4::jsonb)`, [versionId,readerVersion,dateSystem,JSON.stringify(manifest)]);
         await client.query("UPDATE control.load_runs SET rows_read=$2,status='review',finished_at=now() WHERE id=$1", [runId,inserted]);
         await client.query(`INSERT INTO quality.issues(load_run_id,rule_code,severity,message,details)
           VALUES ($1,'NORMALIZATION_PENDING','info','Captura original completa; normalizacion y publicacion pendientes.',$2::jsonb)`,
-          [runId,JSON.stringify({reader:workbook.readerVersion,rows:inserted})]);
-        await client.query("COMMIT");
-        return {result:"RAW_CAPTURED_REVIEW_REQUIRED",kind:workbook.kind,rows:inserted,sheets:manifest.length,loadRunId:runId};
+          [runId,JSON.stringify({reader:readerVersion,rows:inserted})]);
+        await client.query(rollbackForVerification?"ROLLBACK":"COMMIT");
+        return {result:rollbackForVerification?"CAPTURE_VERIFIED_ROLLED_BACK":"RAW_CAPTURED_REVIEW_REQUIRED",kind,rows:inserted,sheets:manifest.length,loadRunId:runId};
       } catch (error) { await client.query("ROLLBACK"); throw error; }
     }
   } finally {
@@ -116,4 +122,3 @@ export async function processFiles(apply: boolean) {
     await client.end();
   }
 }
-

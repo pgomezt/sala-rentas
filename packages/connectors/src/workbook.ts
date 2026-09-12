@@ -34,11 +34,17 @@ function encode(cell: Cell | undefined): unknown {
   if (cell.z !== undefined) result.numberFormat = cell.z;
   return result;
 }
-export function parseWorkbook(path: string) {
+export function workbookSheetNames(path:string):string[]{
+  const names=requireReader().readFile(path,{bookSheets:true}).SheetNames;
+  if(!names.length||names.length>100||names.some(n=>!n||n.length>128||n.includes("\u0000")))throw new Error("INVALID_SHEET_LIST");
+  return names;
+}
+export function parseWorkbook(path: string, sheetIndex?:number) {
   const reader = requireReader();
-  const workbook = reader.readFile(path, { dense: true, cellDates: false, cellNF: true, cellText: false, cellFormula: true, sheetStubs: true });
+  const workbook = reader.readFile(path, { dense: true, cellHTML:false, cellDates: false, cellNF: true, cellText: false, cellFormula: true, sheetStubs: true,...(sheetIndex===undefined?{}:{sheets:sheetIndex}) });
   let kind: "REG" | "LEG" | undefined;
-  const sheets: ParsedSheet[] = workbook.SheetNames.map(name => {
+  const names=sheetIndex===undefined?workbook.SheetNames:[workbook.SheetNames[sheetIndex]!];
+  const sheets: ParsedSheet[] = names.map(name => {
     const sheet = workbook.Sheets[name];
     if (!sheet?.["!ref"] || !sheet["!data"]) throw new Error("EMPTY_OR_UNSUPPORTED_SHEET");
     const range = reader.utils.decode_range(sheet["!ref"]);

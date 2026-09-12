@@ -11,6 +11,8 @@
     "packages/*"
   ],
   "scripts": {
+    "data:normalize": "node scripts/task.mjs data:normalize",
+    "data:quality": "node scripts/quality-report.ts",
     "files:scan": "node scripts/task.mjs files:scan",
     "files:import": "node scripts/task.mjs files:import",
     "db:test": "node scripts/task.mjs db:test",
